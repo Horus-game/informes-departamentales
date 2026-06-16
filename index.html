@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Informes Departamentales</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1a3a5c;--blue:#1a6fd4;--bg:#edf1f8;--card:#ffffff;
+  --border:#e0e7ef;--border2:#dde3eb;--text:#1a2233;--muted:#5a7299;
+  --dim:#a8bdd4;--r:14px;--rs:10px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);min-height:100vh;padding-bottom:30px;-webkit-font-smoothing:antialiased}
+
+/* TOPBAR */
+.topbar{background:var(--navy);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px rgba(26,58,92,0.25)}
+.topbar h1{font-size:17px;font-weight:700;flex:1;letter-spacing:.3px}
+.back-btn{background:rgba(255,255,255,.15);border:none;border-radius:8px;color:#fff;width:36px;height:36px;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* LISTA */
+.content{padding:16px;max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.categoria{border-radius:var(--r);overflow:hidden;border:1px solid var(--border2);box-shadow:0 1px 6px rgba(26,58,92,.06)}
+.cat-header{background:linear-gradient(90deg,var(--navy),var(--blue));color:#fff;padding:13px 18px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:10px;letter-spacing:.3px}
+.informe-btn{display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--card);border:none;border-bottom:1px solid #f0f3f8;width:100%;text-align:left;cursor:pointer;font-family:inherit;font-size:15px;color:var(--navy);font-weight:500;transition:background .12s;min-height:58px;-webkit-tap-highlight-color:transparent}
+.informe-btn:last-child{border-bottom:none}
+.informe-btn:active{background:#e8f0ff}
+.informe-icon{font-size:22px;flex-shrink:0;width:42px;height:42px;border-radius:10px;background:#f0f5ff;display:flex;align-items:center;justify-content:center}
+.informe-txt{flex:1}
+.informe-sub{font-size:12px;color:var(--muted);font-weight:400;margin-top:2px;display:block}
+.informe-arrow{color:var(--dim);font-size:18px}
+
+/* OVERLAY MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(10,20,40,.6);z-index:100;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
+.overlay.open{display:flex}
+.modal{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-width:680px;max-height:94dvh;max-height:94vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 40px rgba(10,20,40,.25)}
+
+/* MODAL HEADER */
+.modal-header{padding:8px 12px 7px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--card);border-radius:20px 20px 0 0;flex-shrink:0}
+.modal-title{font-size:14px;font-weight:700;color:var(--navy)}
+.modal-close{background:#f0f0f0;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#555}
+
+/* TABS */
+.modal-tabs{display:flex;background:var(--card);border-radius:12px;border:1px solid var(--border2);overflow:hidden;flex-shrink:0;box-shadow:0 1px 4px rgba(26,58,92,.06);margin:6px 8px 0}
+.modal-tab{flex:1;padding:7px;border:none;background:none;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;color:var(--muted);transition:all .15s;letter-spacing:.2px;display:flex;align-items:center;justify-content:center;gap:5px}
+.modal-tab.active{background:var(--navy);color:white}
+
+/* MODAL BODY */
+.modal-body{padding:6px 8px 4px;overflow-y:auto;overflow-x:hidden;flex:1;display:flex;flex-direction:column;gap:4px;-webkit-overflow-scrolling:touch;min-height:0}
+
+/* FORM GROUP */
+.form-group{background:var(--card);border-radius:var(--rs);border:1px solid var(--border);overflow:hidden;box-shadow:0 1px 4px rgba(26,58,92,.04)}
+.field-row{display:flex;align-items:center;border-bottom:1px solid #f0f4f9;min-height:36px}
+.field-row:last-child{border-bottom:none}
+.field-row:focus-within{background:#f6f9ff}
+.field-lbl{font-size:9px;font-weight:700;color:#3d5a80;text-transform:uppercase;letter-spacing:.05em;padding:0 7px;min-width:80px;flex-shrink:0;line-height:1.2;background:#f0f5ff;border-right:2px solid #dce8f8;display:flex;align-items:center;align-self:stretch}
+.field-inp{flex:1;border:none;outline:none;color:#1a2233;font-size:13px;padding:7px 9px;background:transparent;font-family:inherit}
+.field-inp::placeholder{color:#9fb3cc}
+.field-ta{flex:1;border:none;outline:none;color:#1a2233;font-size:13px;padding:7px 9px;background:transparent;font-family:inherit;resize:none;min-height:54px;line-height:1.4;cursor:pointer}
+.field-ta::placeholder{color:var(--dim)}
+.coords-row{display:flex;align-items:center;border-bottom:1px solid #f0f4f9;min-height:36px}
+.coords-row:last-child{border-bottom:none}
+.coords-lbl{font-size:9px;font-weight:700;color:#3d5a80;text-transform:uppercase;letter-spacing:.05em;padding:0 7px;min-width:80px;flex-shrink:0;line-height:1.2;background:#f0f5ff;border-right:2px solid #dce8f8;display:flex;align-items:center;align-self:stretch}
+.coords-val{flex:1;display:flex;flex-direction:column;padding:5px 9px;gap:2px}
+.coord-line{display:flex;align-items:center;gap:6px;font-size:12px}
+.coord-lbl2{font-size:9px;font-weight:700;color:#6b7280;min-width:48px;text-transform:uppercase;letter-spacing:.05em}
+.coord-inp{flex:1;border:none;outline:none;color:#1a6fd4;font-size:12px;font-weight:600;background:transparent;font-family:inherit;padding:1px 0}
+.coord-inp::placeholder{color:#9fb3cc;font-weight:400}
+
+/* SIN NOVEDADES */
+.sn-wrap{background:var(--card);border-radius:var(--rs);border:1.5px solid var(--border);padding:7px 10px;display:flex;align-items:center;gap:9px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:border-color .2s,background .2s;box-shadow:0 1px 4px rgba(26,58,92,.04)}
+.sn-wrap.activo{background:#f0fdf4;border-color:#86efac}
+.sn-toggle{width:40px;height:23px;border-radius:12px;background:#d1d5db;position:relative;transition:background .2s;flex-shrink:0}
+.sn-wrap.activo .sn-toggle{background:#22c55e}
+.sn-knob{position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:white;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.sn-wrap.activo .sn-knob{left:19px}
+.sn-txt{font-size:13px;font-weight:600;color:#374151}
+.sn-wrap.activo .sn-txt{color:#15803d}
+
+/* PREVIEW */
+.preview-box{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:16px 18px;font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap;font-family:inherit;word-break:break-word;flex-shrink:0}
+
+/* FOTOS */
+.fotos-wrap{background:var(--card);border-radius:var(--rs);border:1px solid var(--border);padding:8px 10px;display:flex;flex-direction:column;gap:8px}
+.fotos-label{font-size:9px;font-weight:700;color:#3d5a80;text-transform:uppercase;letter-spacing:.1em}
+.fotos-previews{display:flex;flex-wrap:wrap;gap:8px}
+.foto-thumb-wrap{position:relative;width:72px;height:72px}
+.foto-thumb-wrap img{width:100%;height:100%;object-fit:cover;border-radius:9px;border:1px solid var(--border2);cursor:zoom-in}
+.foto-thumb-del{position:absolute;top:-6px;right:-6px;width:22px;height:22px;background:#ef4444;border:none;border-radius:50%;color:white;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0}
+.fotos-btns{display:flex;gap:8px}
+.btn-foto{flex:1;background:#f0f5ff;border:1.5px solid #c5d5f5;border-radius:8px;padding:8px 6px;font-size:12px;font-weight:700;color:#1a4fa0;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;transition:background .12s}
+.btn-foto:active{background:#d0e2ff}
+
+/* SECTION LABEL */
+.sec-lbl{font-size:9px;font-weight:800;color:#3d5a80;text-transform:uppercase;letter-spacing:.1em;padding:8px 2px 2px}
+
+/* FOOTER */
+.modal-footer{display:flex;gap:6px;padding:7px 8px calc(7px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--border);flex-shrink:0}
+.btn-gps-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;border-radius:50%;cursor:pointer;width:58px;height:58px;background:#1a6fd4;color:#fff;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,.18);transition:transform .12s;-webkit-tap-highlight-color:transparent;font-family:inherit}
+.btn-gps-footer:active{transform:scale(.88)}
+.btn-gps-footer.ok{background:#22c55e}
+.btn-gps-footer.pulse{animation:gpulse 1s ease-in-out infinite}
+@keyframes gpulse{0%,100%{box-shadow:0 3px 10px rgba(0,0,0,.18),0 0 0 0 rgba(26,111,212,.5)}50%{box-shadow:0 3px 10px rgba(0,0,0,.18),0 0 0 10px rgba(26,111,212,0)}}
+.gps-lbl{font-size:8px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.btn-copiar{flex:1;background:#e8f0fe;color:var(--navy);border:1.5px solid #c5d5f5;border-radius:8px;padding:8px 4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .12s;min-height:40px}
+.btn-copiar:active{background:#d0e2ff}
+.btn-copiar.ok{background:#d1fae5;border-color:#6ee7b7;color:#065f46}
+.btn-wa{flex:1;background:#25D366;color:white;border:none;border-radius:8px;padding:8px 4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;min-height:40px;transition:background .12s}
+.btn-wa:active{background:#128C7E}
+
+/* DICTADO */
+.btn-dict{display:flex;align-items:center;gap:6px;background:#fff;border:2px solid var(--border2);border-radius:9px;padding:8px 12px;font-size:12px;font-weight:700;color:#374151;cursor:pointer;font-family:inherit;flex:1;transition:border-color .15s,background .15s}
+.btn-dict.grabando{background:#fef2f2;border-color:#ef4444;color:#dc2626;animation:prec 1.2s ease-in-out infinite}
+@keyframes prec{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.35)}50%{box-shadow:0 0 0 6px rgba(239,68,68,0)}}
+.btn-dict .mic-dot{width:9px;height:9px;border-radius:50%;background:#d1d5db;flex-shrink:0;transition:background .2s}
+.btn-dict.grabando .mic-dot{background:#ef4444}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(26,42,80,.95);color:white;padding:12px 24px;border-radius:24px;font-size:14px;font-weight:600;opacity:0;transition:all .3s;pointer-events:none;z-index:9000;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* RESUMEN MODAL GRANDE */
+.resumen-overlay{display:none;position:fixed;inset:0;background:rgba(10,20,40,.7);z-index:500;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.resumen-overlay.open{display:flex}
+.resumen-sheet{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-width:680px;max-height:90dvh;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 40px rgba(10,20,40,.3)}
+.resumen-header{padding:13px 16px;background:var(--navy);color:white;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.resumen-header-title{font-size:15px;font-weight:700}
+.resumen-tools{display:flex;gap:8px;padding:10px 12px;flex-shrink:0}
+.resumen-body{flex:1;display:flex;flex-direction:column;padding:0 12px 6px;gap:6px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.resumen-hint{font-size:12px;color:var(--muted);font-style:italic}
+.resumen-ta{flex:1;border:1.5px solid var(--border2);border-radius:10px;padding:12px;font-size:15px;line-height:1.7;font-family:inherit;color:#1a2233;background:var(--card);resize:none;outline:none;min-height:200px}
+.resumen-ta:focus{border-color:#1a6fd4;background:#f6f9ff}
+.resumen-footer{padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:8px}
+.btn-resumen-cancel{background:#f0f4f8;color:var(--muted);border:1px solid var(--border2);border-radius:10px;padding:12px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-resumen-ok{flex:1;background:var(--navy);color:white;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* LIGHTBOX */
+.lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out}
+.lb.open{display:flex}
+.lb img{max-width:92vw;max-height:88vh;object-fit:contain;border-radius:8px}
+.lb-x{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:#fff;width:36px;height:36px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* CÁMARA IN-APP */
+.camara-overlay{display:none;position:fixed;inset:0;background:#000;z-index:8000;flex-direction:column;overflow:hidden}
+.camara-overlay.open{display:flex}
+.camara-video-wrap{flex:1;overflow:hidden;position:relative;margin-bottom:116px}
+.camara-video{width:100%;height:100%;object-fit:cover;background:#000;display:block;transform-origin:center center;transition:transform .05s linear}
+.camara-bar{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:20px 24px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));background:rgba(0,0,0,.85);z-index:9000;gap:12px}
+.camara-btn-capture{width:72px;height:72px;border-radius:50%;background:#fff;border:4px solid rgba(255,255,255,.4);cursor:pointer;flex-shrink:0;transition:transform .1s}
+.camara-btn-capture:active{transform:scale(.92)}
+.camara-btn-secondary{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:10px;color:#fff;font-size:13px;font-weight:700;font-family:inherit;padding:12px 16px;cursor:pointer;white-space:nowrap}
+.camara-top{position:absolute;top:0;left:0;right:0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,.6),transparent);z-index:2}
+.camara-title{color:#fff;font-size:15px;font-weight:700}
+.camara-close{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.3);border-radius:50%;width:38px;height:38px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.camara-zoom-badge{position:absolute;top:62px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);color:#fff;font-size:14px;font-weight:700;padding:4px 14px;border-radius:20px;z-index:2;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.camara-zoom-badge.show{opacity:1}
+.camara-zoom-btns{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:2}
+.camara-zoom-btn{width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.35);color:#fff;font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.kawaii-flash{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.5);z-index:10;pointer-events:none;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 0 0 6px rgba(255,255,255,.5),0 8px 32px rgba(0,0,0,.4);overflow:hidden;transition:transform .18s cubic-bezier(.34,1.56,.64,1),opacity .25s;opacity:0;align-items:center;justify-content:center;font-size:56px}
+.kawaii-flash.show{display:flex;transform:translate(-50%,-50%) scale(1);opacity:1}
+.kawaii-flash.hide{opacity:0;transform:translate(-50%,-50%) scale(1.3)}
+
+/* PANEL ENVÍO FOTOS */
+.fotos-send-overlay{display:none;position:fixed;inset:0;background:rgba(10,20,40,.7);z-index:7000;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.fotos-send-overlay.open{display:flex}
+.fotos-send-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:680px;max-height:80dvh;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 40px rgba(10,20,40,.3)}
+.fotos-send-header{padding:14px 16px;background:var(--navy);color:white;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.fotos-send-grid{flex:1;overflow-y:auto;padding:14px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;-webkit-overflow-scrolling:touch}
+.fotos-send-item{background:#f5f8ff;border-radius:12px;overflow:hidden;border:1px solid var(--border2);display:flex;flex-direction:column}
+.fotos-send-item img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.fotos-send-item-btns{display:flex;gap:6px;padding:8px}
+.btn-share-foto{flex:1;background:#25D366;color:white;border:none;border-radius:8px;padding:8px 4px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-dl-foto{flex:1;background:#e8f0fe;color:#1a4fa0;border:1.5px solid #c5d5f5;border-radius:8px;padding:8px 4px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;display:flex;align-items:center;justify-content:center}
+.fotos-send-footer{padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:#f8faff;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:8px}
+.btn-share-todas{flex:1;background:#25D366;color:white;border:none;border-radius:10px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-cerrar-fotos{background:#f0f0f0;color:#374151;border:none;border-radius:10px;padding:13px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="back-btn" onclick="history.back()">←</button>
+  <h1>Informes Departamentales</h1>
+</div>
+
+<div class="content">
+
+  <div class="categoria">
+    <div class="cat-header"><span>🎯</span><span>Control de Objetivo</span></div>
+    <button class="informe-btn" onclick="abrirModal('obj')">
+      <div class="informe-icon">📍</div>
+      <div class="informe-txt">
+        <span style="font-weight:700">Control de Objetivo</span>
+        <span class="informe-sub">Lugar · Ubicación · Hora · Dotación · Informe</span>
+      </div>
+      <span class="informe-arrow">›</span>
+    </button>
+  </div>
+
+  <div class="categoria">
+    <div class="cat-header"><span>🚨</span><span>Mensaje Relevante / Proc. Policial</span></div>
+    <button class="informe-btn" onclick="abrirModal('rel')">
+      <div class="informe-icon">🚔</div>
+      <div class="informe-txt">
+        <span style="font-weight:700">Mensaje Relevante / Proc. Policial</span>
+        <span class="informe-sub">Departamental Río Cuarto · UTP · Tipo de hecho</span>
+      </div>
+      <span class="informe-arrow">›</span>
+    </button>
+  </div>
+
+  <div class="categoria">
+    <div class="cat-header"><span>📋</span><span>Informe Departamental</span></div>
+    <button class="informe-btn" onclick="abrirModal('dep')">
+      <div class="informe-icon">📄</div>
+      <div class="informe-txt">
+        <span style="font-weight:700">Informe Departamental</span>
+        <span class="informe-sub">Río Cuarto · Fecha · Tipo de hecho · GPS · Descripción</span>
+      </div>
+      <span class="informe-arrow">›</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- ═══════ MODAL OBJ ═══════ -->
+<div class="overlay" id="modal-obj">
+<div class="modal">
+  <div class="modal-header">
+    <span class="modal-title">🎯 Control de Objetivo</span>
+    <button class="modal-close" onclick="cerrarModal('obj')">✕</button>
+  </div>
+  <div class="modal-tabs">
+    <button class="modal-tab active" id="tab-obj-form" onclick="setTab('obj','form')">✏️ Formulario</button>
+    <button class="modal-tab" id="tab-obj-prev" onclick="setTab('obj','prev')">👁 Vista previa</button>
+  </div>
+  <div class="modal-body" id="body-obj">
+
+    <!-- FORMULARIO -->
+    <div id="panel-obj-form">
+      <div class="sn-wrap" id="sn-obj" onclick="toggleSN('obj')">
+        <div class="sn-toggle"><div class="sn-knob"></div></div>
+        <span class="sn-txt">Sin novedades</span>
+      </div>
+
+      <div class="form-group" style="margin-top:4px">
+        <div class="field-row">
+          <div class="field-lbl">Lugar</div>
+          <input class="field-inp" id="obj-lugar" type="text" placeholder="Nombre del objetivo" oninput="prev('obj')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Ubicación</div>
+          <input class="field-inp" id="obj-ubicacion" type="text" placeholder="Dirección — o presioná GPS" oninput="prev('obj')">
+        </div>
+        <div class="coords-row">
+          <div class="coords-lbl">Coords</div>
+          <div class="coords-val">
+            <div class="coord-line">
+              <span class="coord-lbl2">Latitud</span>
+              <input class="coord-inp" id="obj-lat" type="text" placeholder="—" readonly oninput="prev('obj')">
+            </div>
+            <div class="coord-line">
+              <span class="coord-lbl2">Longitud</span>
+              <input class="coord-inp" id="obj-lng" type="text" placeholder="—" readonly oninput="prev('obj')">
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Hora</div>
+          <input class="field-inp" id="obj-hora" type="text" placeholder="HH:MM hs" readonly style="cursor:pointer;color:#1a6fd4;font-weight:600" onclick="setHora('obj')" oninput="prev('obj')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Dotación</div>
+          <input class="field-inp" id="obj-dotacion" type="text" placeholder="Personal" oninput="prev('obj')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Informe</div>
+          <textarea class="field-ta" id="obj-informe" placeholder="Tocá para escribir o dictá..." rows="2" onclick="abrirResumen('obj')" readonly oninput="prev('obj')"></textarea>
+        </div>
+      </div>
+
+      <div class="sec-lbl">📷 Fotos</div>
+      <div class="fotos-wrap">
+        <div class="fotos-previews" id="fp-obj"></div>
+        <div class="fotos-btns">
+          <button class="btn-foto" onclick="abrirCamaraId('obj')">📷 Cámara</button>
+          <button class="btn-foto" onclick="elegirFotoGaleria('obj')">🖼 Galería</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA PREVIA -->
+    <div id="panel-obj-prev" style="display:none">
+      <div class="preview-box" id="prev-obj">—</div>
+    </div>
+
+  </div>
+  <div class="modal-footer">
+    <button class="btn-gps-footer" id="bgps-obj" onclick="pedirGPS('obj')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2C8 2 4.5 5.2 4.5 9.5c0 5.5 7.5 12.5 7.5 12.5s7.5-7 7.5-12.5C19.5 5.2 16 2 12 2z"/></svg>
+      <span class="gps-lbl" id="gl-obj">GPS</span>
+    </button>
+    <button class="btn-copiar" id="bcopy-obj" onclick="copiar('obj')">📋 Copiar</button>
+    <button class="btn-wa" onclick="enviarWA('obj')">📲 WhatsApp</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════ MODAL REL ═══════ -->
+<div class="overlay" id="modal-rel">
+<div class="modal">
+  <div class="modal-header">
+    <span class="modal-title">🚨 Mensaje Relevante / Proc. Policial</span>
+    <button class="modal-close" onclick="cerrarModal('rel')">✕</button>
+  </div>
+  <div class="modal-tabs">
+    <button class="modal-tab active" id="tab-rel-form" onclick="setTab('rel','form')">✏️ Formulario</button>
+    <button class="modal-tab" id="tab-rel-prev" onclick="setTab('rel','prev')">👁 Vista previa</button>
+  </div>
+  <div class="modal-body" id="body-rel">
+
+    <div id="panel-rel-form">
+      <div class="form-group" style="margin-top:4px">
+        <div class="field-row">
+          <div class="field-lbl">Hora</div>
+          <input class="field-inp" id="rel-hora" type="text" placeholder="HH:MM hs" readonly style="cursor:pointer;color:#1a6fd4;font-weight:600" onclick="setHora('rel')" oninput="prev('rel')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Ubicación</div>
+          <input class="field-inp" id="rel-ubicacion" type="text" placeholder="Dirección — o presioná GPS" oninput="prev('rel')">
+        </div>
+        <div class="coords-row">
+          <div class="coords-lbl">Coords</div>
+          <div class="coords-val">
+            <div class="coord-line">
+              <span class="coord-lbl2">Latitud</span>
+              <input class="coord-inp" id="rel-lat" type="text" placeholder="—" readonly oninput="prev('rel')">
+            </div>
+            <div class="coord-line">
+              <span class="coord-lbl2">Longitud</span>
+              <input class="coord-inp" id="rel-lng" type="text" placeholder="—" readonly oninput="prev('rel')">
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">UTP</div>
+          <input class="field-inp" id="rel-utp" type="text" placeholder="Unidad Táctica Policial" oninput="prev('rel')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Localidad</div>
+          <input class="field-inp" id="rel-localidad" type="text" placeholder="Río Cuarto" oninput="prev('rel')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Tipo Hecho</div>
+          <input class="field-inp" id="rel-tipo" type="text" placeholder="Robo / Lesiones / ..." oninput="prev('rel')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Descripción</div>
+          <textarea class="field-ta" id="rel-desc" placeholder="Tocá para escribir o dictá..." rows="2" onclick="abrirResumen('rel')" readonly oninput="prev('rel')"></textarea>
+        </div>
+      </div>
+
+      <div class="sec-lbl">📷 Fotos</div>
+      <div class="fotos-wrap">
+        <div class="fotos-previews" id="fp-rel"></div>
+        <div class="fotos-btns">
+          <button class="btn-foto" onclick="abrirCamaraId('rel')">📷 Cámara</button>
+          <button class="btn-foto" onclick="elegirFotoGaleria('rel')">🖼 Galería</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-rel-prev" style="display:none">
+      <div class="preview-box" id="prev-rel">—</div>
+    </div>
+
+  </div>
+  <div class="modal-footer">
+    <button class="btn-gps-footer" id="bgps-rel" onclick="pedirGPS('rel')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2C8 2 4.5 5.2 4.5 9.5c0 5.5 7.5 12.5 7.5 12.5s7.5-7 7.5-12.5C19.5 5.2 16 2 12 2z"/></svg>
+      <span class="gps-lbl" id="gl-rel">GPS</span>
+    </button>
+    <button class="btn-copiar" id="bcopy-rel" onclick="copiar('rel')">📋 Copiar</button>
+    <button class="btn-wa" onclick="enviarWA('rel')">📲 WhatsApp</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════ MODAL DEP ═══════ -->
+<div class="overlay" id="modal-dep">
+<div class="modal">
+  <div class="modal-header">
+    <span class="modal-title">📋 Informe Departamental</span>
+    <button class="modal-close" onclick="cerrarModal('dep')">✕</button>
+  </div>
+  <div class="modal-tabs">
+    <button class="modal-tab active" id="tab-dep-form" onclick="setTab('dep','form')">✏️ Formulario</button>
+    <button class="modal-tab" id="tab-dep-prev" onclick="setTab('dep','prev')">👁 Vista previa</button>
+  </div>
+  <div class="modal-body" id="body-dep">
+
+    <div id="panel-dep-form">
+      <div class="form-group" style="margin-top:4px">
+        <div class="field-row">
+          <div class="field-lbl">Fecha</div>
+          <input class="field-inp" id="dep-fecha" type="text" placeholder="DD/MM/AAAA" readonly style="cursor:pointer;color:#1a6fd4;font-weight:600" onclick="setFechaDep()" oninput="prev('dep')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Hora</div>
+          <input class="field-inp" id="dep-hora" type="text" placeholder="HH:MM hs" readonly style="cursor:pointer;color:#1a6fd4;font-weight:600" onclick="setFechaDep()" oninput="prev('dep')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Ubicación</div>
+          <input class="field-inp" id="dep-ubicacion" type="text" placeholder="Dirección — o presioná GPS" oninput="prev('dep')">
+        </div>
+        <div class="coords-row">
+          <div class="coords-lbl">Coords</div>
+          <div class="coords-val">
+            <div class="coord-line">
+              <span class="coord-lbl2">Latitud</span>
+              <input class="coord-inp" id="dep-lat" type="text" placeholder="—" readonly oninput="prev('dep')">
+            </div>
+            <div class="coord-line">
+              <span class="coord-lbl2">Longitud</span>
+              <input class="coord-inp" id="dep-lng" type="text" placeholder="—" readonly oninput="prev('dep')">
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">UTP</div>
+          <input class="field-inp" id="dep-utp" type="text" placeholder="Unidad Táctica" oninput="prev('dep')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Localidad</div>
+          <input class="field-inp" id="dep-localidad" type="text" placeholder="Río Cuarto" oninput="prev('dep')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Tipo Hecho</div>
+          <input class="field-inp" id="dep-tipo" type="text" placeholder="Robo / Lesiones / ..." oninput="prev('dep')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Damnificado</div>
+          <input class="field-inp" id="dep-damni" type="text" placeholder="—" oninput="prev('dep')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Aprehendido</div>
+          <input class="field-inp" id="dep-apreh" type="text" placeholder="—" oninput="prev('dep')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Secuestro</div>
+          <input class="field-inp" id="dep-secue" type="text" placeholder="—" oninput="prev('dep')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Notificado</div>
+          <input class="field-inp" id="dep-notif" type="text" placeholder="—" oninput="prev('dep')">
+        </div>
+        <div class="field-row">
+          <div class="field-lbl">Txt</div>
+          <textarea class="field-ta" id="dep-desc" placeholder="Tocá para escribir o dictá..." rows="2" onclick="abrirResumen('dep')" readonly oninput="prev('dep')"></textarea>
+        </div>
+      </div>
+
+      <div class="sec-lbl">📷 Fotos</div>
+      <div class="fotos-wrap">
+        <div class="fotos-previews" id="fp-dep"></div>
+        <div class="fotos-btns">
+          <button class="btn-foto" onclick="abrirCamaraId('dep')">📷 Cámara</button>
+          <button class="btn-foto" onclick="elegirFotoGaleria('dep')">🖼 Galería</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-dep-prev" style="display:none">
+      <div class="preview-box" id="prev-dep">—</div>
+    </div>
+
+  </div>
+  <div class="modal-footer">
+    <button class="btn-gps-footer" id="bgps-dep" onclick="pedirGPS('dep')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2C8 2 4.5 5.2 4.5 9.5c0 5.5 7.5 12.5 7.5 12.5s7.5-7 7.5-12.5C19.5 5.2 16 2 12 2z"/></svg>
+      <span class="gps-lbl" id="gl-dep">GPS</span>
+    </button>
+    <button class="btn-copiar" id="bcopy-dep" onclick="copiar('dep')">📋 Copiar</button>
+    <button class="btn-wa" onclick="enviarWA('dep')">📲 WhatsApp</button>
+  </div>
+</div>
+</div>
+
+<!-- RESUMEN MODAL GRANDE -->
+<div class="resumen-overlay" id="resumen-overlay">
+  <div class="resumen-sheet">
+    <div class="resumen-header">
+      <span class="resumen-header-title">📝 Resumen / Descripción</span>
+      <button class="modal-close" style="background:rgba(255,255,255,.15);color:white" onclick="cerrarResumen(false)">✕</button>
+    </div>
+    <div class="resumen-tools">
+      <button class="btn-dict" id="bd-resumen" onclick="toggleDict()"><span class="mic-dot"></span><span id="dl-resumen">🎤 Dictado</span></button>
+    </div>
+    <div class="resumen-body">
+      <div class="resumen-hint">Dictá o escribí. Tocá "Aceptar" para guardar.</div>
+      <textarea class="resumen-ta" id="resumen-ta" placeholder="Describí lo ocurrido, observaciones, medidas tomadas..."></textarea>
+    </div>
+    <div class="resumen-footer">
+      <button class="btn-resumen-cancel" onclick="cerrarResumen(false)">Cancelar</button>
+      <button class="btn-resumen-ok" onclick="cerrarResumen(true)">✓ Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<!-- INPUT GALERÍA -->
+<input type="file" id="inp-gal" accept="image/*" multiple style="display:none" onchange="fotoCapturada(event)">
+
+<!-- CÁMARA IN-APP -->
+<div class="camara-overlay" id="camara-overlay">
+  <div class="camara-video-wrap" id="camara-video-wrap">
+    <video class="camara-video" id="camara-video" playsinline autoplay muted></video>
+    <div class="camara-top">
+      <span class="camara-title" id="camara-title-lbl">📷 Cámara</span>
+      <button class="camara-close" onclick="cerrarCamara()">✕</button>
+    </div>
+    <div class="kawaii-flash" id="kawaii-flash">📸</div>
+    <div class="camara-zoom-badge" id="camara-zoom-badge">1×</div>
+    <div class="camara-zoom-btns">
+      <button class="camara-zoom-btn" onclick="ajustarZoom(0.5)">+</button>
+      <button class="camara-zoom-btn" onclick="ajustarZoom(-0.5)">−</button>
+    </div>
+  </div>
+  <canvas id="camara-canvas" style="display:none"></canvas>
+  <div class="camara-bar">
+    <button class="camara-btn-secondary" onclick="switchCamara()">🔄 Girar</button>
+    <button class="camara-btn-capture" onclick="capturarFoto()" title="Sacar foto"></button>
+    <button class="camara-btn-secondary" onclick="cerrarCamara()">← Volver</button>
+  </div>
+</div>
+
+<!-- PANEL ENVÍO FOTOS -->
+<div class="fotos-send-overlay" id="fotos-send-overlay">
+  <div class="fotos-send-sheet">
+    <div class="fotos-send-header">
+      <span style="font-size:14px;font-weight:700">📷 Enviar fotos por WhatsApp</span>
+      <button class="modal-close" style="background:rgba(255,255,255,.15);color:white" onclick="cerrarPanelFotos()">✕</button>
+    </div>
+    <div class="fotos-send-grid" id="fotos-send-grid"></div>
+    <div class="fotos-send-footer">
+      <button class="btn-share-todas" onclick="compartirTodasFotos()">📲 Compartir todas</button>
+      <button class="btn-cerrar-fotos" onclick="cerrarPanelFotos()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lb" id="lb" onclick="cerrarLb()">
+  <button class="lb-x" onclick="cerrarLb()">×</button>
+  <img id="lb-img" src="" alt="">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Mi Turno ─────────────────────────────────────
+var HALCON   = localStorage.getItem('glp_turno_halcon') || '';
+var DOTACION = (function(){
+  var d = localStorage.getItem('glp_turno_dotacion') || localStorage.getItem('glp_nombre') || '';
+  return d.split('\n').filter(Boolean).join(', ') || d;
+})();
+
+// ── Helpers ──────────────────────────────────────
+function _horaAhora() {
+  var d = new Date();
+  return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')+'hs';
+}
+function _fechaAhora() {
+  var d = new Date();
+  return d.getDate().toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getFullYear();
+}
+function v(id){ return (document.getElementById(id)||{}).value||''; }
+function toast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+}
+
+// ── TABS ─────────────────────────────────────────
+function setTab(id, tab) {
+  document.getElementById('panel-'+id+'-form').style.display = tab==='form' ? '' : 'none';
+  document.getElementById('panel-'+id+'-prev').style.display = tab==='prev' ? '' : 'none';
+  document.getElementById('tab-'+id+'-form').classList.toggle('active', tab==='form');
+  document.getElementById('tab-'+id+'-prev').classList.toggle('active', tab==='prev');
+  if (tab==='prev') prev(id);
+}
+
+// ── SIN NOVEDADES ────────────────────────────────
+function toggleSN(id) {
+  var wrap = document.getElementById('sn-'+id);
+  var activo = wrap.classList.toggle('activo');
+  if (id==='obj') {
+    var ta = document.getElementById('obj-informe');
+    if (activo) ta.value = 'Sin Novedad';
+    else ta.value = '';
+  }
+  prev(id);
+}
+
+// ── HORA / FECHA ─────────────────────────────────
+function setHora(id) {
+  document.getElementById(id+'-hora').value = _horaAhora();
+  prev(id);
+  toast('🕐 Hora actualizada');
+}
+function setFechaDep() {
+  document.getElementById('dep-fecha').value = _fechaAhora();
+  document.getElementById('dep-hora').value  = _horaAhora();
+  prev('dep');
+  toast('🕐 Fecha y hora actualizadas');
+}
+
+// ── ABRIR / CERRAR MODAL ─────────────────────────
+function abrirModal(id) {
+  document.getElementById('modal-'+id).classList.add('open');
+  setTab(id, 'form');
+  if (id === 'obj') {
+    configurarObjetivoPorMovil();
+    if (!v('obj-hora'))     document.getElementById('obj-hora').value     = _horaAhora();
+    if (!v('obj-dotacion')) document.getElementById('obj-dotacion').value = DOTACION;
+    if (!v('obj-lugar') && HALCON) document.getElementById('obj-lugar').value = 'HALCÓN '+HALCON;
+  } else if (id === 'rel') {
+    if (!v('rel-hora'))     document.getElementById('rel-hora').value     = _horaAhora();
+    if (!v('rel-localidad')) document.getElementById('rel-localidad').value = 'Río Cuarto';
+  } else if (id === 'dep') {
+    if (!v('dep-fecha'))    document.getElementById('dep-fecha').value    = _fechaAhora();
+    if (!v('dep-hora'))     document.getElementById('dep-hora').value     = _horaAhora();
+    if (!v('dep-localidad')) document.getElementById('dep-localidad').value = 'Río Cuarto';
+  }
+  prev(id);
+}
+function cerrarModal(id) {
+  document.getElementById('modal-'+id).classList.remove('open');
+  if (_dictActivo) _pararDict();
+}
+
+
+// ── TIPOS DE OBJETIVO POR MÓVIL ─────────────────
+function configurarObjetivoPorMovil(){
+  var movil=(localStorage.getItem('glp_turno_halcon_tipo')||'').toUpperCase().trim();
+  var titulo=document.querySelector('#modal-obj .modal-title');
+  var lugar=document.getElementById('obj-lugar');
+  var informe=document.getElementById('obj-informe');
+
+  if(movil==='CHAJA'){
+    if(titulo) titulo.textContent='🎯 Control de Objetivo - CHAJÁ';
+    if(lugar && !lugar.value) lugar.value='OBJETIVO CHAJÁ';
+    if(informe) informe.placeholder='Observaciones de control CHAJÁ...';
+  }else{
+    if(titulo) titulo.textContent='🎯 Control de Objetivo';
+  }
+}
+
+
+// ── GPS ──────────────────────────────────────────
+function pedirGPS(id) {
+  var btn = document.getElementById('bgps-'+id);
+  var lbl = document.getElementById('gl-'+id);
+  if (!navigator.geolocation) { toast('GPS no disponible'); return; }
+
+  btn.disabled = true; btn.classList.add('pulse'); btn.classList.remove('ok');
+  lbl.textContent = '…';
+  toast('📡 Obteniendo señal GPS...');
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var lat = pos.coords.latitude.toFixed(6);
+      var lng = pos.coords.longitude.toFixed(6);
+
+      // Rellenar lat/lng en los campos de coordenadas del modal
+      var latEl = document.getElementById(id+'-lat');
+      var lngEl = document.getElementById(id+'-lng');
+      if (latEl) latEl.value = lat;
+      if (lngEl) lngEl.value = lng;
+      prev(id);
+
+      lbl.textContent = 'Dir…';
+      toast('📍 Buscando dirección...');
+
+      // Geocodificar
+      var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lng+'&accept-language=es&addressdetails=1&zoom=18';
+      Promise.race([
+        fetch(url, {headers:{'Accept-Language':'es','User-Agent':'GLP/1.0'}}).then(function(r){ return r.json(); }),
+        new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('t')); },6000); })
+      ])
+      .then(function(d) {
+        var a = d.address||{};
+        var road = a.road||a.pedestrian||a.footway||a.path||a.residential||a.hamlet||'';
+        var num  = a.house_number||'';
+        if (!road) { setBtnOk(btn,lbl,id); return; }
+
+        var delta=0.0003;
+        var bbox=(parseFloat(lat)-delta)+','+(parseFloat(lng)-delta)+','+(parseFloat(lat)+delta)+','+(parseFloat(lng)+delta);
+        var q='[out:json][timeout:4];way["highway"]["name"]('+bbox+');out body;';
+        return Promise.race([
+          fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q)).then(function(r2){ return r2.json(); }),
+          new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('t')); },4500); })
+        ]).then(function(ov) {
+          var calles=[];
+          (ov.elements||[]).forEach(function(el){ var n=el.tags&&el.tags.name?el.tags.name.trim():''; if(n&&calles.indexOf(n)===-1)calles.push(n); });
+          calles.sort(function(a,b){ return a===road?-1:b===road?1:0; });
+          var dir=(calles.length>=2&&!num)?calles[0]+' esq. '+calles[1]:road+(num?' '+num:'');
+          var ubic=document.getElementById(id+'-ubicacion');
+          if (ubic&&!ubic.value) ubic.value=dir;
+          setBtnOk(btn,lbl,id);
+          toast('✓ '+dir);
+        });
+      })
+      .catch(function(){ setBtnOk(btn,lbl,id); toast('✓ Coordenadas guardadas'); });
+    },
+    function(err) {
+      btn.disabled=false; btn.classList.remove('pulse'); lbl.textContent='GPS';
+      var msgs={1:'Permiso denegado',2:'Sin señal',3:'Tiempo agotado'};
+      toast('⚠ '+(msgs[err.code]||'Error GPS'));
+    },
+    { enableHighAccuracy:true, timeout:10000, maximumAge:0 }
+  );
+}
+function setBtnOk(btn,lbl,id) {
+  btn.disabled=false; btn.classList.remove('pulse'); btn.classList.add('ok');
+  lbl.textContent='✓ OK';
+  prev(id);
+}
+
+// ── GENERAR TEXTOS ───────────────────────────────
+function genObj() {
+  var lat = v('obj-lat'), lng = v('obj-lng');
+  var coords = (lat && lng) ? '\nLatitud: '+lat+'\nLongitud: '+lng : '';
+  return 'CONTROL DE OBJETIVO\n' +
+    'Lugar: '    +(v('obj-lugar')    ||'—')+'\n' +
+    'Ubicación: '+(v('obj-ubicacion')||'—')+
+    coords+'\n' +
+    'Hora: '     +(v('obj-hora')     ||'—')+'\n' +
+    'Dotación: ' +(v('obj-dotacion') ||'—')+'\n' +
+    'Informe: '  +(v('obj-informe')  ||'Sin Novedad');
+}
+function genRel() {
+  var lat = v('rel-lat'), lng = v('rel-lng');
+  var coords = (lat && lng) ? ' / Lat: '+lat+' Lng: '+lng : '';
+  return 'MENSAJE RELEVANTE / PROCEDIMIENTO POLICIAL\n' +
+    'DEPARTAMENTAL RÍO CUARTO\n' +
+    'FECHA: '+(v('rel-hora')||'—')+' / '+(v('rel-ubicacion')||'—')+coords+' / '+
+    (v('rel-utp')||'—')+' / '+(v('rel-localidad')||'—')+' / '+(v('rel-tipo')||'—')+' / '+(v('rel-desc')||'—');
+}
+function genDep() {
+  var lat = v('dep-lat'), lng = v('dep-lng');
+  return 'Informe\nDEPARTAMENTAL RÍO CUARTO\n' +
+    'FECHA: '+(v('dep-fecha')||'—')+' '+(v('dep-hora')||'—')+' / '+
+    (v('dep-ubicacion')||'—')+' / '+(v('dep-utp')||'—')+' / '+(v('dep-localidad')||'—')+' / '+(v('dep-tipo')||'—')+
+    '\nLatitud: '+(lat||'—')+
+    '\nLongitud: '+(lng||'—')+
+    '\nDamnificado: '+(v('dep-damni')||'—')+
+    '\nAprehendido: '+(v('dep-apreh')||'—')+
+    '\nSecuestro: '  +(v('dep-secue')||'—')+
+    '\nNotificado: ' +(v('dep-notif')||'—')+
+    '\nTxt: '        +(v('dep-desc') ||'—');
+}
+function genTexto(id) {
+  if (id==='obj') return genObj();
+  if (id==='rel') return genRel();
+  return genDep();
+}
+function prev(id) {
+  var el = document.getElementById('prev-'+id);
+  if (el) el.textContent = genTexto(id);
+}
+
+// ── COPIAR ───────────────────────────────────────
+async function copiar(id) {
+  var txt = genTexto(id);
+  try {
+    if (navigator.clipboard) await navigator.clipboard.writeText(txt);
+    else { var t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); }
+    var btn = document.getElementById('bcopy-'+id);
+    if (btn) { btn.classList.add('ok'); btn.textContent='✓ Copiado'; setTimeout(function(){ btn.classList.remove('ok'); btn.textContent='📋 Copiar'; },1800); }
+    toast('✓ Copiado al portapapeles');
+  } catch(e) { toast('Error al copiar'); }
+}
+
+// ── Helper: reconstruir File desde base64 (igual que INFORMES_RAPIDOS) ──────
+function _b64ToFile(item, idx) {
+  var byteStr = atob(item.data);
+  var arr = new Uint8Array(byteStr.length);
+  for (var i=0; i<byteStr.length; i++) arr[i] = byteStr.charCodeAt(i);
+  return new File([arr], item.name||('foto_'+(idx+1)+'.jpg'), { type: item.type||'image/jpeg' });
+}
+
+// ── WHATSAPP ─────────────────────────────────────
+async function enviarWA(id) {
+  var txt     = genTexto(id);
+  var b64list = _fotosB64[id] || [];
+  var encoded = encodeURIComponent(txt);
+
+  // Copiar texto al portapapeles siempre
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(txt);
+    else { var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+  } catch(ec){}
+
+  // CON FOTOS: reconstruir Files desde base64 justo antes del share
+  if (b64list.length > 0 && typeof navigator.share === 'function') {
+    try {
+      var files = b64list.map(function(f,i){ return _b64ToFile(f,i); });
+      var shareData = { files:files, text:txt, title:'Informe GLP' };
+      var canShare = typeof navigator.canShare==='function' ? navigator.canShare(shareData) : true;
+      if (canShare) {
+        await navigator.share(shareData);
+        toast('\u{1F4F2} Informe e imágenes enviados');
+        return;
+      }
+    } catch(e) {
+      if (e.name==='AbortError') return;
+    }
+    // Fallback: abrir WA con texto, luego mostrar panel de fotos
+    var a=document.createElement('a'); a.href='whatsapp://send?text='+encoded; a.style.display='none';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); },500);
+    setTimeout(function(){ mostrarPanelFotosWA(id); },800);
+    return;
+  }
+
+  // SIN FOTOS: abrir WhatsApp directamente
+  var a=document.createElement('a'); a.href='whatsapp://send?text='+encoded; a.style.display='none';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ document.body.removeChild(a); },500);
+  toast('\u{1F4F2} Abriendo WhatsApp...');
+}
+
+// ── RESUMEN MODAL GRANDE ─────────────────────────
+// ── RESUMEN MODAL GRANDE ─────────────────────────
+var _resumenId = null;
+function abrirResumen(id) {
+  _resumenId = id;
+  var taIds = {obj:'obj-informe', rel:'rel-desc', dep:'dep-desc'};
+  var ta = document.getElementById('resumen-ta');
+  ta.value = v(taIds[id]);
+  document.getElementById('resumen-overlay').classList.add('open');
+  setTimeout(function(){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 100);
+}
+function cerrarResumen(aceptar) {
+  if (aceptar && _resumenId) {
+    var taIds = {obj:'obj-informe', rel:'rel-desc', dep:'dep-desc'};
+    var src = document.getElementById('resumen-ta');
+    var dst = document.getElementById(taIds[_resumenId]);
+    if (dst) dst.value = src.value;
+    prev(_resumenId);
+  }
+  if (_dictActivo) _pararDict();
+  document.getElementById('resumen-overlay').classList.remove('open');
+  _resumenId = null;
+}
+
+// ── DICTADO (solo dentro del resumen modal) ───────
+var _dictActivo = false;
+var _recog = null;
+var _dictBase = '';
+function toggleDict() {
+  if (_dictActivo) { _pararDict(); return; }
+  var SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+  if (!SR) { toast('Dictado no disponible en este navegador'); return; }
+  var btn = document.getElementById('bd-resumen');
+  var lbl = document.getElementById('dl-resumen');
+  var ta  = document.getElementById('resumen-ta');
+  _dictBase = ta ? ta.value : '';
+  _recog = new SR();
+  _recog.continuous=true; _recog.interimResults=true; _recog.lang='es-AR';
+  _recog.onresult = function(e) {
+    var final='',interim='';
+    for (var i=e.resultIndex;i<e.results.length;i++) {
+      if (e.results[i].isFinal) final+=e.results[i][0].transcript;
+      else interim+=e.results[i][0].transcript;
+    }
+    if (ta) { ta.value=_dictBase+final+interim; if(final) _dictBase+=final; }
+  };
+  _recog.onerror = function(e){ if(e.error!=='aborted') toast('Error: '+e.error); _pararDict(); };
+  _recog.onend   = function(){ if(_dictActivo) _pararDict(); };
+  _recog.start();
+  _dictActivo=true;
+  if (btn) btn.classList.add('grabando');
+  if (lbl) lbl.textContent='⏹ Detener';
+  toast('🎤 Dictando...');
+}
+function _pararDict() {
+  if (_recog) { try { _recog.abort(); } catch(e){} _recog=null; }
+  _dictActivo=false;
+  var btn=document.getElementById('bd-resumen');
+  var lbl=document.getElementById('dl-resumen');
+  if (btn) btn.classList.remove('grabando');
+  if (lbl) lbl.textContent='🎤 Dictado';
+}
+
+// ── FOTOS ─────────────────────────────────────────
+// _fotos: data URLs para previsualización
+// _fotosB64: objetos {data, name, type} en base64 — mismo formato que fotosState en INFORMES_RAPIDOS
+//   Los File se reconstruyen desde base64 justo antes del share (evita Blobs corruptos)
+var _fotos    = {obj:[],rel:[],dep:[]};
+var _fotosB64 = {obj:[],rel:[],dep:[]};
+var _fotoModal = null;
+
+// ── Galería (input file) ──────────────────────────
+function elegirFotoGaleria(id) {
+  _fotoModal = id;
+  document.getElementById('inp-gal').click();
+}
+
+// ── Cámara in-app ────────────────────────────────
+var _camaraStream  = null;
+var _camaraFacing  = 'environment';
+var _camaraId      = null; // qué modal está usando la cámara
+var _zoomLevel     = 1;
+var _zoomMin       = 1;
+var _zoomMax       = 5;
+var _zoomNative    = false;
+var _pinchDist0    = 0;
+var _zoomBase      = 1;
+var _zoomBadgeTmr  = null;
+
+function _mostrarZoomBadge(level) {
+  var badge = document.getElementById('camara-zoom-badge');
+  if (!badge) return;
+  badge.textContent = level.toFixed(1) + '×';
+  badge.classList.add('show');
+  clearTimeout(_zoomBadgeTmr);
+  _zoomBadgeTmr = setTimeout(function(){ badge.classList.remove('show'); }, 1500);
+}
+
+function _aplicarZoom(level) {
+  level = Math.max(_zoomMin, Math.min(_zoomMax, level));
+  _zoomLevel = level;
+  if (_zoomNative && _camaraStream) {
+    var track = _camaraStream.getVideoTracks()[0];
+    if (track) { try { track.applyConstraints({ advanced:[{ zoom: level }] }); } catch(e){} }
+  } else {
+    var video = document.getElementById('camara-video');
+    if (video) video.style.transform = 'scale(' + level + ')';
+  }
+  _mostrarZoomBadge(level);
+}
+
+function ajustarZoom(delta) { _aplicarZoom(_zoomLevel + delta); }
+
+function _initPinchZoom() {
+  var wrap = document.getElementById('camara-video-wrap');
+  if (!wrap) return;
+  wrap.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      _pinchDist0 = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      _zoomBase = _zoomLevel;
+    }
+  }, { passive:false });
+  wrap.addEventListener('touchmove', function(e) {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      var dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      if (_pinchDist0 > 0) _aplicarZoom(_zoomBase * (dist / _pinchDist0));
+    }
+  }, { passive:false });
+}
+
+function abrirCamaraId(id) {
+  _camaraId = id;
+  _fotoModal = id;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    // Fallback: input nativo capture
+    var inp = document.createElement('input');
+    inp.type='file'; inp.accept='image/*'; inp.setAttribute('capture','environment');
+    inp.style.display='none';
+    document.body.appendChild(inp);
+    inp.onchange = function(){ if(inp.files&&inp.files.length) _procesarArchivos(Array.from(inp.files), id); document.body.removeChild(inp); };
+    inp.click();
+    return;
+  }
+  var overlay = document.getElementById('camara-overlay');
+  overlay.classList.add('open');
+  _zoomLevel=1; _zoomNative=false;
+  _initPinchZoom();
+  _iniciarStream(_camaraFacing);
+}
+
+function _iniciarStream(facing) {
+  _pararStream();
+  _camaraFacing = facing;
+  navigator.mediaDevices.getUserMedia({
+    video:{ facingMode:{ideal:facing}, width:{ideal:9999,min:1280}, height:{ideal:9999,min:720} },
+    audio:false
+  })
+  .then(function(stream) {
+    _camaraStream = stream;
+    var video = document.getElementById('camara-video');
+    video.srcObject = stream; video.style.transform='scale(1)'; video.play();
+    _zoomNative=false; _zoomMin=1; _zoomMax=5; _zoomLevel=1;
+    var track = stream.getVideoTracks()[0];
+    if (track && track.getCapabilities) {
+      var caps = track.getCapabilities();
+      if (caps && caps.zoom) { _zoomNative=true; _zoomMin=caps.zoom.min||1; _zoomMax=caps.zoom.max||5; }
+    }
+  })
+  .catch(function() {
+    cerrarCamara();
+    var inp=document.createElement('input');
+    inp.type='file'; inp.accept='image/*'; inp.setAttribute('capture','environment');
+    inp.style.display='none';
+    document.body.appendChild(inp);
+    inp.onchange=function(){ if(inp.files&&inp.files.length) _procesarArchivos(Array.from(inp.files), _camaraId||'obj'); document.body.removeChild(inp); };
+    inp.click();
+  });
+}
+
+function _pararStream() {
+  if (_camaraStream) { _camaraStream.getTracks().forEach(function(t){ t.stop(); }); _camaraStream=null; }
+}
+
+function switchCamara() {
+  _camaraFacing = _camaraFacing==='environment' ? 'user' : 'environment';
+  _zoomLevel=1;
+  _iniciarStream(_camaraFacing);
+}
+
+function capturarFoto() {
+  var id = _camaraId || 'obj';
+  if (_fotos[id].length >= 10) { toast('Máximo 10 fotos'); cerrarCamara(); return; }
+  var video  = document.getElementById('camara-video');
+  var canvas = document.getElementById('camara-canvas');
+  if (!video.videoWidth) { toast('Cámara no lista'); return; }
+
+  var vw=video.videoWidth, vh=video.videoHeight;
+  var zoom = _zoomNative ? 1 : _zoomLevel;
+  var sw=vw/zoom, sh=vh/zoom, sx=(vw-sw)/2, sy=(vh-sh)/2;
+  canvas.width=Math.round(sw); canvas.height=Math.round(sh);
+  var ctx=canvas.getContext('2d');
+  if (_camaraFacing==='user') { ctx.translate(canvas.width,0); ctx.scale(-1,1); }
+  ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  if (_camaraFacing==='user') ctx.setTransform(1,0,0,1,0,0);
+
+  var dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+  var base64  = dataUrl.split(',')[1];
+  _fotos[id].push(dataUrl);
+  // Guardar en base64 igual que fotosState en INFORMES_RAPIDOS
+  _fotosB64[id].push({ data: base64, name: 'foto_camara_'+Date.now()+'.jpg', type: 'image/jpeg' });
+
+  renderFotos(id);
+
+  // Flash kawaii
+  var kawaii=document.getElementById('kawaii-flash');
+  if (kawaii) {
+    kawaii.classList.remove('hide'); kawaii.classList.add('show');
+    setTimeout(function(){ kawaii.classList.add('hide'); setTimeout(function(){ kawaii.classList.remove('show','hide'); },280); },900);
+  }
+  // Flash blanco
+  var ov=document.getElementById('camara-overlay');
+  ov.style.background='#fff'; setTimeout(function(){ ov.style.background='#000'; },80);
+
+  toast('✓ Foto tomada (' + _fotos[id].length + '/10)');
+  if (_fotos[id].length >= 10) setTimeout(cerrarCamara, 600);
+}
+
+function cerrarCamara() {
+  _pararStream(); _zoomLevel=1;
+  var video=document.getElementById('camara-video');
+  if (video) video.style.transform='scale(1)';
+  var ov=document.getElementById('camara-overlay');
+  ov.classList.remove('open'); ov.style.background='#000';
+}
+
+document.addEventListener('visibilitychange', function(){ if(document.hidden) _pararStream(); });
+
+// ── Procesar archivos de galería ──────────────────
+function _comprimirImagen(file, maxW) {
+  return new Promise(function(resolve){
+    var img=new Image(), url=URL.createObjectURL(file);
+    img.onload=function(){
+      var escala=Math.min(1,maxW/img.width);
+      var c=document.createElement('canvas');
+      c.width=Math.round(img.width*escala); c.height=Math.round(img.height*escala);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      c.toBlob(function(blob){ URL.revokeObjectURL(url); resolve(blob||file); },'image/jpeg',0.85);
+    };
+    img.src=url;
+  });
+}
+
+function _procesarArchivos(files, id) {
+  if (!id) id = _fotoModal || 'obj';
+  Promise.all(files.map(function(file){
+    return _comprimirImagen(file, 1200).then(function(blob){
+      return new Promise(function(resolve){
+        var reader=new FileReader();
+        reader.onload=function(ev){
+          var dataUrl = ev.target.result;
+          _fotos[id].push(dataUrl);
+          // Guardar en base64 igual que fotosState en INFORMES_RAPIDOS
+          _fotosB64[id].push({ data: dataUrl.split(',')[1], name: file.name||'foto.jpg', type: 'image/jpeg' });
+          resolve();
+        };
+        reader.readAsDataURL(blob);
+      });
+    });
+  })).then(function(){ renderFotos(id); });
+}
+
+function fotoCapturada(e) {
+  var files=Array.from(e.target.files||[]);
+  if (!files.length) return;
+  _procesarArchivos(files, _fotoModal);
+  e.target.value='';
+}
+
+function renderFotos(id) {
+  var strip=document.getElementById('fp-'+id);
+  if (!strip) return;
+  strip.innerHTML='';
+  _fotos[id].forEach(function(src,i){
+    var wrap=document.createElement('div'); wrap.className='foto-thumb-wrap';
+    var img=document.createElement('img'); img.src=src; img.onclick=function(){ abrirLb(src); };
+    var del=document.createElement('button'); del.className='foto-thumb-del'; del.textContent='×';
+    del.onclick=function(){ _fotos[id].splice(i,1); _fotosB64[id].splice(i,1); renderFotos(id); };
+    wrap.appendChild(img); wrap.appendChild(del); strip.appendChild(wrap);
+  });
+}
+
+// ── LIGHTBOX ─────────────────────────────────────
+function abrirLb(src){ document.getElementById('lb-img').src=src; document.getElementById('lb').classList.add('open'); }
+function cerrarLb()  { document.getElementById('lb').classList.remove('open'); document.getElementById('lb-img').src=''; }
+
+// ── PANEL DE FOTOS PARA WA ───────────────────────
+function mostrarPanelFotosWA(id) {
+  var grid=document.getElementById('fotos-send-grid');
+  if (!grid) return;
+  grid.innerHTML='';
+  var fotos  = _fotos[id]   || [];
+  var b64list= _fotosB64[id]|| [];
+  fotos.forEach(function(src,i){
+    var item=document.createElement('div'); item.className='fotos-send-item';
+    var img=document.createElement('img'); img.src=src; item.appendChild(img);
+    var btns=document.createElement('div'); btns.className='fotos-send-item-btns';
+
+    var btnShare=document.createElement('button'); btnShare.className='btn-share-foto';
+    btnShare.textContent='\u{1F4F2} Compartir';
+    btnShare.onclick=(function(idx){ return function(){ compartirFotoIndividual(id,idx); }; })(i);
+
+    var btnDl=document.createElement('button'); btnDl.className='btn-dl-foto';
+    btnDl.textContent='\u2B07 Descargar';
+    btnDl.onclick=(function(idx){ return function(){
+      if (!b64list[idx]) return;
+      var file=_b64ToFile(b64list[idx], idx);
+      var url=URL.createObjectURL(file);
+      var a=document.createElement('a'); a.href=url; a.download=file.name; a.click();
+      setTimeout(function(){ URL.revokeObjectURL(url); },2000);
+    }; })(i);
+
+    btns.appendChild(btnShare); btns.appendChild(btnDl);
+    item.appendChild(btns); grid.appendChild(item);
+  });
+  document.getElementById('fotos-send-overlay').dataset.modalId=id;
+  document.getElementById('fotos-send-overlay').classList.add('open');
+}
+
+function cerrarPanelFotos() {
+  document.getElementById('fotos-send-overlay').classList.remove('open');
+}
+
+async function compartirFotoIndividual(id, i) {
+  var b64list=_fotosB64[id]||[];
+  if (!b64list[i]) return;
+  if (typeof navigator.share==='function') {
+    try {
+      var file=_b64ToFile(b64list[i], i);
+      if (navigator.canShare({files:[file]})) { await navigator.share({files:[file]}); return; }
+    } catch(e){ if(e.name==='AbortError') return; }
+  }
+  var file2=_b64ToFile(b64list[i], i);
+  var url=URL.createObjectURL(file2);
+  var a=document.createElement('a'); a.href=url; a.download=file2.name; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); },2000);
+}
+
+async function compartirTodasFotos() {
+  var id=document.getElementById('fotos-send-overlay').dataset.modalId||'obj';
+  var b64list=_fotosB64[id]||[];
+  if (!b64list.length) { toast('No hay fotos'); return; }
+  if (typeof navigator.share==='function') {
+    try {
+      var files=b64list.map(function(f,i){ return _b64ToFile(f,i); });
+      if (navigator.canShare({files:files})) { await navigator.share({files:files}); return; }
+    } catch(e){ if(e.name==='AbortError') return; }
+  }
+  b64list.forEach(function(f,i){
+    var file=_b64ToFile(f,i); var url=URL.createObjectURL(file);
+    var a=document.createElement('a'); a.href=url; a.download=file.name; a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); },2000);
+  });
+  toast('Fotos descargadas — enviálas por WhatsApp');
+}
+
+// ── AUTO-ABRIR MODAL DESDE HASH ───────────────────
+// Cuando index.html carga este archivo con #obj, #rel o #dep
+// abre automáticamente el modal correspondiente
+(function() {
+  function leerHash() {
+    var hash = (window.location.hash || '').replace('#', '');
+    if (hash === 'obj' || hash === 'rel' || hash === 'dep') {
+      // Pequeño delay para que el DOM esté listo
+      setTimeout(function() { abrirModal(hash); }, 120);
+    }
+  }
+  // Al cargar
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', leerHash);
+  } else {
+    leerHash();
+  }
+  // También escuchar si el hash cambia (navegación dentro del iframe)
+  window.addEventListener('hashchange', leerHash);
+})();
+</script>
+</body>
+</html>
